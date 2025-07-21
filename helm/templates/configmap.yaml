@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.app.name }}-config
+  labels:
+    app.kubernetes.io/name: {{ .Values.app.name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Values.app.version | quote }}
+    app.kubernetes.io/component: config
+    app.kubernetes.io/part-of: {{ .Values.app.name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+data:
+  # All environment variables from env section
+  {{- range $key, $value := .Values.env }}
+  {{- if ne $key "additional" }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+  {{- end }}
+  
+  # Smart environment-based configuration
+  VAULT_ENABLED: {{ include "bands-api.vaultEnabled" . | quote }}
+  DATABASE_EXTERNAL: {{ include "bands-api.databaseExternal" . | quote }}
+  
+  # Additional environment variables from env.additional
+  {{- if .Values.env.additional }}
+  {{- range $key, $value := .Values.env.additional }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+  {{- end }}
+  
+  # Health check configuration
+  HEALTH_CHECK_PATH: {{ .Values.healthProbes.path | quote }}
+  
+  # Monitoring configuration
+  METRICS_PATH: {{ .Values.monitoring.prometheus.path | quote }}
+  METRICS_PORT: {{ .Values.monitoring.prometheus.port | quote }}
+  
+  # Logging configuration
+  LOG_LEVEL: {{ .Values.logging.level | default "info" | quote }}
+  LOG_FORMAT: {{ .Values.logging.format | default "json" | quote }}
+  
+  # Monitoring configuration
+  MONITORING_ENABLED: {{ .Values.monitoring.enabled | quote }}
+  PROMETHEUS_SCRAPE: {{ .Values.monitoring.prometheus.scrape | quote }}
+  

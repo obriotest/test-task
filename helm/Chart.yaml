@@ -1,0 +1,22 @@
+apiVersion: v2
+name: bands-api
+description: A Helm chart for NestJS Bands API application
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - nestjs
+  - api
+  - bands
+  - mongodb
+home: https://gitlab.com/obrio/bands-api
+sources:
+  - https://gitlab.com/obrio/bands-api
+maintainers:
+  - name: Obrio DevOps Team
+    email: devops@obrio.com
+dependencies:
+  - name: mongodb
+    version: "13.18.5"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: mongodb.enabled

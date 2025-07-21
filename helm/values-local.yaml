@@ -1,0 +1,116 @@
+# Local development values for bands-api
+# This file overrides default values for local Minikube deployment
+
+# Application configuration
+app:
+  name: bands-api
+  version: "1.0.0"
+  port: 3000
+
+# Image configuration
+image:
+  repository: bands-api
+  tag: latest
+  pullPolicy: Never  # Use local images in Minikube
+
+# Replica configuration (single replica for local dev)
+replicaCount: 1
+
+# Service configuration - NodePort for local access
+service:
+  type: NodePort
+  port: 80
+  targetPort: 3000
+  nodePort: 30080  # Fixed port for consistent local access
+
+# Development-friendly resource limits
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# Development-optimized health probe configuration
+healthProbes:
+  enabled: true
+  path: /health
+  readiness:
+    enabled: true
+    initialDelaySeconds: 5     # Very quick startup for dev
+    periodSeconds: 3           # Very frequent checks for fast feedback
+    timeoutSeconds: 2
+    failureThreshold: 2
+    successThreshold: 1
+  liveness:
+    enabled: true
+    initialDelaySeconds: 15    # Quick startup for dev
+    periodSeconds: 8           # More frequent than production
+    timeoutSeconds: 3
+    failureThreshold: 2        # Less tolerant for quick feedback
+
+# Database configuration - use local MongoDB
+database:
+  external: false
+
+# Environment variables for development
+env:
+  NODE_ENV: development
+  PORT: 3000
+  DATABASE_URI: "mongodb://bands-api-mongodb:27017/bands"
+  CACHE_TTL: "1800"  # 30 minutes for development
+  MAX_CONNECTIONS: "50"
+  DEBUG_MODE: "true"
+  additional: {}
+
+# Vault configuration (automatically disabled for development environment)
+vault:
+  enabled: false  # Will be overridden by template logic
+  role: ""
+  path: "secret/data/bands-api"
+  secrets:
+    - name: "DATABASE_URI"
+      key: "database-uri"
+    - name: "JWT_SECRET"
+      key: "jwt-secret"
+
+# Logging configuration for development
+logging:
+  level: "debug"
+  format: "pretty"
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  prometheus:
+    scrape: true
+    path: /metrics
+    port: 3000
+
+# MongoDB dependency configuration
+mongodb:
+  enabled: true
+  image:
+    repository: mongo
+    tag: "5.0"
+  auth:
+    enabled: false  # Disable auth for local development
+  persistence:
+    enabled: false  # Use ephemeral storage for local dev
+  # Disable security contexts for local development
+  podSecurityContext:
+    enabled: false
+  containerSecurityContext:
+    enabled: false
+  # Ensure volume permissions are handled
+  volumePermissions:
+    enabled: true
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+

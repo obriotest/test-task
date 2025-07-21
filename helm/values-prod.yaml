@@ -1,0 +1,203 @@
+# Production values for bands-api
+# This file overrides default values for production Kubernetes deployment
+
+# Application configuration
+app:
+  name: bands-api
+  version: "1.0.0"
+  port: 3000
+
+# Image configuration
+image:
+  repository: your-registry.com/bands-api
+  tag: "1.0.0"  # Use specific version tags in production
+  pullPolicy: Always
+
+# Replica configuration for high availability
+replicaCount: 3
+
+# Service configuration - ClusterIP for internal access via Istio
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+# Production resource limits
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+# Production-optimized health probe configuration
+healthProbes:
+  enabled: true
+  path: /health
+  readiness:
+    enabled: true
+    initialDelaySeconds: 30    # Conservative startup time for production
+    periodSeconds: 10          # Moderate frequency for stability
+    timeoutSeconds: 5
+    failureThreshold: 3        # More tolerant of failures
+    successThreshold: 1
+  liveness:
+    enabled: true
+    initialDelaySeconds: 60    # Allow ample time for startup
+    periodSeconds: 30          # Less frequent to avoid unnecessary restarts
+    timeoutSeconds: 10         # Longer timeout for production stability
+    failureThreshold: 3        # Conservative failure threshold
+
+# Database configuration - external MongoDB cluster (URI comes from Vault)
+database:
+  external: true  # Will be overridden by template logic (auto-true for production)
+
+# Environment variables for production
+env:
+  NODE_ENV: production
+  PORT: 3000
+  # DATABASE_URI will be injected via Vault secret (not defined here)
+  CACHE_TTL: "3600"  # 1 hour for production
+  MAX_CONNECTIONS: "200"
+  RATE_LIMIT_WINDOW: "900"  # 15 minutes
+  RATE_LIMIT_MAX: "1000"
+  additional: {}
+
+# Logging configuration for production
+logging:
+  level: "info"
+  format: "json"
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  prometheus:
+    scrape: true
+    path: /metrics
+    port: 3000
+
+# Istio service mesh configuration
+istio:
+  enabled: true
+  gateway:
+    enabled: true
+    hosts:
+      - "bands-api.obrio.com"
+  virtualService:
+    enabled: true
+    match:
+      - uri:
+          prefix: "/"
+  destinationRule:
+    enabled: true
+    trafficPolicy:
+      tls:
+        mode: ISTIO_MUTUAL
+
+# HashiCorp Vault integration
+vault:
+  enabled: true
+  role: "bands-api"
+  path: "secret/bands-api"
+  address: "https://vault.vault-system.svc.cluster.local:8200"
+  kubernetesMountPath: "kubernetes"
+  secrets:
+    - name: "DATABASE_URI"
+      key: "database-uri"
+    - name: "JWT_SECRET"
+      key: "jwt-secret"
+    - name: "API_KEY"
+      key: "api-key"
+
+# Horizontal Pod Autoscaler configuration
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+mongodb:
+  enabled: false
+
+# ServiceMonitor, Prometheus Operator to improve monitoring
+
+# Production-specific pod annotations (commented out for simplicity)
+# podAnnotations:
+#   vault.hashicorp.com/agent-inject: "true"
+#   vault.hashicorp.com/role: "bands-api"
+#   sidecar.istio.io/inject: "true"
+#   prometheus.io/scrape: "true"
+#   prometheus.io/path: "/metrics"
+#   prometheus.io/port: "3000"
+
+# Production-specific pod labels (commented out for simplicity)
+# podLabels:
+#   environment: "production"
+#   tier: "backend"
+#   version: "v1"
+
+# Node selector (commented out for simplicity)
+# nodeSelector:
+#   node-type: "production"
+#   zone: "us-west-2a"
+
+# Tolerations (commented out for simplicity)
+# tolerations:
+#   - key: "production-workload"
+#     operator: "Equal"
+#     value: "true"
+#     effect: "NoSchedule"
+
+# Affinity rules (commented out for simplicity)
+# affinity:
+#   podAntiAffinity:
+#     preferredDuringSchedulingIgnoredDuringExecution:
+#       - weight: 100
+#         podAffinityTerm:
+#           labelSelector:
+#             matchExpressions:
+#               - key: app.kubernetes.io/name
+#                 operator: In
+#                 values:
+#                   - bands-api
+#           topologyKey: kubernetes.io/hostname
+
+# Network Policy (commented out for simplicity)
+# networkPolicy:
+#   enabled: true
+#   policyTypes:
+#     - Ingress
+#     - Egress
+#   ingress:
+#     # Allow traffic from Istio sidecar proxies
+#     - from:
+#         - namespaceSelector:
+#             matchLabels:
+#               name: istio-system
+#       ports:
+#         - protocol: TCP
+#           port: 3000
+#   egress:
+#     # Allow connection to MongoDB cluster
+#     - to:
+#         - namespaceSelector:
+#             matchLabels:
+#               name: mongodb-system
+#       ports:
+#         - protocol: TCP
+#           port: 27017
+
+# Pod Security Policy configuration (commented out for simplicity)
+# podSecurityPolicy:
+#   enabled: true
+
+
+
+

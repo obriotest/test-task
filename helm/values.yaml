@@ -1,0 +1,92 @@
+# Default values for bands-api
+
+# Application configuration
+app:
+  name: bands-api
+  version: "1.0.0"
+  port: 3000
+
+# Image configuration
+image:
+  repository: bands-api
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# Replica configuration
+replicaCount: 1
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+# Resource limits and requests
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+# Health probe configuration
+healthProbes:
+  enabled: true
+  path: /health
+  readiness:
+    enabled: true
+    initialDelaySeconds: 10    # Quick startup for traffic routing
+    periodSeconds: 5           # Frequent checks for responsiveness
+    timeoutSeconds: 3
+    failureThreshold: 2
+    successThreshold: 1
+  liveness:
+    enabled: true
+    initialDelaySeconds: 30    # Allow time for startup
+    periodSeconds: 10          # Less frequent to avoid restarts
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+# Database configuration
+database:
+  external: false
+
+# Environment variables
+env:
+  NODE_ENV: production
+  PORT: 3000
+  additional: {}
+
+# ConfigMap configuration
+configMap:
+  enabled: true
+  data: {}
+
+# Secrets configuration
+secrets:
+  enabled: false
+  data: {}
+
+# HashiCorp Vault configuration
+vault:
+  enabled: false
+  role: ""
+  path: ""
+  secrets: []
+
+# Logging configuration
+logging:
+  level: "info"
+  format: "json"
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  prometheus:
+    scrape: true
+    path: /metrics
+    port: 3000
+
+
+
