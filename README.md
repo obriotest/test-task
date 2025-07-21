@@ -17,7 +17,7 @@
 - Multi-stage Docker build
 - Kubernetes configuration (auto-detects local vs production)
 - Vault integration for secrets management
-- Prometheus monitoring basic config if can we updated with ServiceMonitor and Operators if needed
+- Prometheus monitoring basic config. Can be updated with ServiceMonitor and Operators if needed
 - > Added CI/CD pipeline is a **demonstration implementation** created for this test task. In real-world scenarios, every CI/CD pipeline should be **uniquely tailored** to the specific team, project requirements, and organizational processes.
   > 
   > **Before implementing any CI/CD pipeline in production, it's essential to:**
